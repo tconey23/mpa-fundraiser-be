@@ -4,17 +4,14 @@ import fetch from "node-fetch";
 import "dotenv/config";
 import path from "path";
 import fs from "fs"
-import admin from "firebase-admin"
 
+// const students = JSON.parse(fs.readFileSync("students.json", "utf8"))
+// const credentials = students.map((s) => {
+//   const username = `${s.student_first.toLowerCase()}${s.student_last.toLowerCase()}`
+//   const password = s.teacher_last.toLowerCase()
 
-
-const students = JSON.parse(fs.readFileSync("students.json", "utf8"))
-const credentials = students.map((s) => {
-  const username = `${s.student_first.toLowerCase()}${s.student_last.toLowerCase()}`
-  const password = s.teacher_last.toLowerCase()
-
-  return  {username, password}
-})
+//   return  {username, password}
+// })
 
 // fs.writeFileSync("student_credentials.json", JSON.stringify(credentials, null, 2))
 
