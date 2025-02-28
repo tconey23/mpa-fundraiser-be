@@ -1,19 +1,7 @@
 import cors from 'cors'
 import express from "express";
-import fetch from "node-fetch";
 import "dotenv/config";
 import path from "path";
-import fs from "fs"
-
-// const students = JSON.parse(fs.readFileSync("students.json", "utf8"))
-// const credentials = students.map((s) => {
-//   const username = `${s.student_first.toLowerCase()}${s.student_last.toLowerCase()}`
-//   const password = s.teacher_last.toLowerCase()
-
-//   return  {username, password}
-// })
-
-// fs.writeFileSync("student_credentials.json", JSON.stringify(credentials, null, 2))
 
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT = 8888 } = process.env;
 const base = "https://api-m.sandbox.paypal.com";
@@ -55,7 +43,7 @@ const generateAccessToken = async () => {
 
 /**
  * Create an order to start the transaction.
- * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
+ * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create 
  */
 const createOrder = async (cart) => {
   // use the cart information passed from the front-end to calculate the purchase unit details
@@ -159,12 +147,6 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
 app.get("/", (req, res) => {
   res.sendFile(path.resolve("./client/checkout.html"));
 });
-
-app.get('/test', (req, res) => {
-  res.status(200).json({status: 'running!'})
-})
-
-
 
 app.listen(PORT, () => {
   console.log(`Node server listening at http://localhost:${PORT}/`);
