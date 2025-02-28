@@ -160,6 +160,10 @@ app.get("/", (req, res) => {
   res.sendFile(path.resolve("./client/checkout.html"));
 });
 
+app.get('/test', (req, res) => {
+  res.status(200).json({status: 'running!'})
+})
+
 
 
 app.listen(PORT, () => {
