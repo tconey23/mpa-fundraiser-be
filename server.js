@@ -3,7 +3,7 @@ import express from "express";
 import "dotenv/config";
 import path from "path";
 
-const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT = 8888 } = process.env;
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT} = process.env;
 const base = "https://api-m.sandbox.paypal.com";
 const app = express();
 
@@ -20,7 +20,7 @@ app.use(express.json());
  */
 const generateAccessToken = async () => {
   try {
-    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) { 
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {  
       throw new Error("MISSING_API_CREDENTIALS");
     }
     const auth = Buffer.from(
@@ -28,7 +28,7 @@ const generateAccessToken = async () => {
     ).toString("base64");
     const response = await fetch(`${base}/v1/oauth2/token`, {
       method: "POST",
-      body: "grant_type=client_credentials",
+      body: "grant_type=client_credentials", 
       headers: {
         Authorization: `Basic ${auth}`,
       },
@@ -46,16 +46,12 @@ const generateAccessToken = async () => {
  * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create 
  */
 const createOrder = async (cart) => {
-  // use the cart information passed from the front-end to calculate the purchase unit details
-  console.log(
-    "shopping cart information passed from the frontend createOrder() callback:",
-    cart,
-  );
+  console.log("Creating PayPal Order with cart:", cart);
 
   const accessToken = await generateAccessToken();
   const url = `${base}/v2/checkout/orders`;
   const payload = {
-    intent: "CAPTURE",  
+    intent: "CAPTURE",
     purchase_units: [
       {
         amount: {
@@ -70,17 +66,13 @@ const createOrder = async (cart) => {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-      // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
-      // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
-      // "PayPal-Mock-Response": '{"mock_application_codes": "MISSING_REQUIRED_PARAMETER"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "PERMISSION_DENIED"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}'
     },
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload), 
   });
 
-  return handleResponse(response);
+  return handleResponse(response); 
 };
 
 /**
@@ -98,25 +90,39 @@ const captureOrder = async (orderID) => {
       Authorization: `Bearer ${accessToken}`,
       // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
       // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "TRANSACTION_REFUSED"}'
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}' 
+      // "PayPal-Mock-Response": '{"mock_application_codes": "TRANSACTION_REFUSED"}' 
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}' 
     },
   });
 
-  return handleResponse(response);
+  return handleResponse(response);  
 };
 
+// async function handleResponse(response) {
+//   try {
+//     const jsonResponse = await response.json();
+//     return {
+//       jsonResponse,
+//       httpStatusCode: response.status,
+//     };
+//   } catch (err) {
+//     const errorMessage = await response.text();
+//     throw new Error(errorMessage);
+//   }
+// }
+
 async function handleResponse(response) {
+  console.log(response)
   try {
-    const jsonResponse = await response.json();
+    const text = await response.text();
+    const jsonResponse = text ? JSON.parse(text) : {};
     return {
       jsonResponse,
       httpStatusCode: response.status,
     };
   } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
+    throw new Error(`Error parsing response: ${err.message}`);
   }
 }
 
