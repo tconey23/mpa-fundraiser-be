@@ -3,15 +3,21 @@ import express from "express";
 import "dotenv/config";
 import path from "path";
 
-const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT} = process.env;
-const base = "https://api-m.sandbox.paypal.com";
-const app = express();
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT, PAYPAL_ENV} = process.env;
+
+const base = PAYPAL_ENV === "live" 
+  ? "https://api-m.paypal.com"
+  : "https://api-m.sandbox.paypal.com";    
+
+const app = express(); 
+
+console.log(base) 
 
 // host static files
 app.use(cors())
 app.use(express.static("client"));
 
-// parse post params sent in body in json format
+// parse post params sent in body in json format 
 app.use(express.json());
 
 /**
@@ -20,7 +26,7 @@ app.use(express.json());
  */
 const generateAccessToken = async () => {
   try {
-    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {  
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {   
       throw new Error("MISSING_API_CREDENTIALS");
     }
     const auth = Buffer.from(
@@ -28,7 +34,7 @@ const generateAccessToken = async () => {
     ).toString("base64");
     const response = await fetch(`${base}/v1/oauth2/token`, {
       method: "POST",
-      body: "grant_type=client_credentials", 
+      body: "grant_type=client_credentials",   
       headers: {
         Authorization: `Basic ${auth}`,
       },
@@ -66,7 +72,6 @@ const createOrder = async (cart) => {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}'
     },
     method: "POST",
     body: JSON.stringify(payload), 
@@ -96,23 +101,10 @@ const captureOrder = async (orderID) => {
     },
   });
 
-  return handleResponse(response);  
+  return handleResponse(response);   
 };
 
-// async function handleResponse(response) {
-//   try {
-//     const jsonResponse = await response.json();
-//     return {
-//       jsonResponse,
-//       httpStatusCode: response.status,
-//     };
-//   } catch (err) {
-//     const errorMessage = await response.text();
-//     throw new Error(errorMessage);
-//   }
-// }
-
-async function handleResponse(response) {
+async function handleResponse(response) { 
   console.log(response)
   try {
     const text = await response.text();
@@ -161,3 +153,4 @@ app.get('/test', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Node server listening at http://localhost:${PORT}/`);
 });
+ 
